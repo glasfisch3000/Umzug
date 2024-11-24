@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		36B1215F2CF37E5E004E4D20 /* APIInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 36B1215E2CF37E5E004E4D20 /* APIInterface */; };
+		36B121752CF38644004E4D20 /* AsyncHTTPClient in Frameworks */ = {isa = PBXBuildFile; productRef = 36B121742CF38644004E4D20 /* AsyncHTTPClient */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		36B1214C2CEDFBF7004E4D20 /* Umzug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Umzug.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +28,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				36B121752CF38644004E4D20 /* AsyncHTTPClient in Frameworks */,
+				36B1215F2CF37E5E004E4D20 /* APIInterface in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +72,8 @@
 			);
 			name = Umzug;
 			packageProductDependencies = (
+				36B1215E2CF37E5E004E4D20 /* APIInterface */,
+				36B121742CF38644004E4D20 /* AsyncHTTPClient */,
 			);
 			productName = Umzug;
 			productReference = 36B1214C2CEDFBF7004E4D20 /* Umzug.app */;
@@ -94,6 +103,10 @@
 			);
 			mainGroup = 36B121432CEDFBF7004E4D20;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				36B1215D2CF37E5E004E4D20 /* XCRemoteSwiftPackageReference "swiftui-api-interface" */,
+				36B121732CF38644004E4D20 /* XCRemoteSwiftPackageReference "async-http-client" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 36B1214D2CEDFBF7004E4D20 /* Products */;
 			projectDirPath = "";
@@ -260,6 +273,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -268,7 +282,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.danckwerts.Umzug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -289,6 +303,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -297,7 +312,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.danckwerts.Umzug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -324,6 +339,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		36B1215D2CF37E5E004E4D20 /* XCRemoteSwiftPackageReference "swiftui-api-interface" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/glasfisch3000/swiftui-api-interface.git";
+			requirement = {
+				kind = revision;
+				revision = 49d9785054713fae069c05c711f0a2b9f1d50281;
+			};
+		};
+		36B121732CF38644004E4D20 /* XCRemoteSwiftPackageReference "async-http-client" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swift-server/async-http-client";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.23.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		36B1215E2CF37E5E004E4D20 /* APIInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 36B1215D2CF37E5E004E4D20 /* XCRemoteSwiftPackageReference "swiftui-api-interface" */;
+			productName = APIInterface;
+		};
+		36B121742CF38644004E4D20 /* AsyncHTTPClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 36B121732CF38644004E4D20 /* XCRemoteSwiftPackageReference "async-http-client" */;
+			productName = AsyncHTTPClient;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 36B121442CEDFBF7004E4D20 /* Project object */;
 }
