@@ -94,7 +94,7 @@ struct ContentView: View {
     }
     
     func authenticate(storeCredentials: Bool = true) {
-        let server = UmzugAPI.APIServer(scheme: .http, host: hostname, port: port)
+        let server = UmzugAPI.APIServer(scheme: .https, host: hostname, port: port)
         let auth = UmzugAPI.Authentication(username: username, password: password)
         self.api = .init(client: .shared, server: server, authentication: auth)
         
