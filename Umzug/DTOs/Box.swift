@@ -12,3 +12,7 @@ struct Box: Sendable, Codable, Identifiable {
     var title: String
     var packings: [Packing]?
 }
+
+extension UmzugAPI.Request {
+    static var boxes: Self { Self.init(path: ["boxes"], query: [:]) }
+}
