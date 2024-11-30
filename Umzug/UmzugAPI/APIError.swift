@@ -6,9 +6,10 @@
 //
 
 import NIOHTTP1
+import APIInterface
 
 extension UmzugAPI {
-    enum APIError: Sendable, Error, Decodable {
+    enum APIError: APIErrorProtocol, Hashable, Decodable {
         case invalidURL
         case invalidAuthentication
         case clientShutdown
@@ -17,6 +18,13 @@ extension UmzugAPI {
         
         enum CodingKeys: CodingKey {
             case invalidAuthentication
+        }
+        
+        var shouldReport: Bool {
+            switch self {
+            case .invalidURL, .invalidStatus(_): false
+            case .invalidAuthentication, .clientShutdown, .other: true
+            }
         }
     }
 }

@@ -35,7 +35,8 @@ struct InspectorView: View {
             }
             .navigationDestination(for: NavigationContent.self) { path in
                 switch path {
-                case .boxes: BoxesView(boxes: UmzugFetched(api: api, request: .boxes))
+                case .boxes:
+                    BoxesView(boxes: UmzugFetched(api: api, request: .boxes))
                 }
             }
         }

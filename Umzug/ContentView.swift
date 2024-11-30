@@ -16,25 +16,87 @@ struct ContentView: View {
     @State private var api: UmzugAPI? = nil
     
     var body: some View {
-        if let api = self.api {
-            TabView {
-                Tab("Inspect", systemImage: "square.grid.2x2") {
-                    InspectorView(api: api)
-                }
-                
-                Tab("Add", systemImage: "plus") {
-                    CreatorView(api: api)
-                }
+        if let api = api {
+            switch api.status {
+            case .normal: apiView(api)
+            case .error(.invalidAuthentication): loginView(invalidAuthentication: true)
+            case .error(let error): errorView(error)
             }
         } else {
-            loginView
+            loginView()
         }
     }
     
     @ViewBuilder
-    private var loginView: some View {
+    private func apiView(_ api: UmzugAPI) -> some View {
+        TabView {
+            Tab("Inspect", systemImage: "square.grid.2x2") {
+                InspectorView(api: api)
+            }
+            
+            Tab("Add", systemImage: "plus") {
+                CreatorView(api: api)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func errorView(_ error: UmzugAPI.APIError) -> some View {
+        VStack(alignment: .center) {
+            Spacer()
+            
+            Image(systemName: "exclamationmark.octagon.fill")
+                .symbolRenderingMode(.multicolor)
+                .font(.largeTitle)
+            
+            Text("An error occurred while connecting to the API.")
+            
+            Group {
+                switch error {
+                case .invalidURL: Text("Invalid URL")
+                case .invalidAuthentication: Text("Invalid authentication")
+                case .clientShutdown: Text("Client shutdown")
+                case .invalidStatus(let status): Text("Invalid HTTP response status: \(status)")
+                case .other: Text("Unknown error")
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            
+            Spacer()
+            
+            Button {
+                self.api = nil
+            } label: {
+                HStack {
+                    Spacer()
+                    
+                    Text("Disconnect")
+                    
+                    Spacer()
+                }
+            }
+            .buttonBorderShape(.roundedRectangle)
+            .buttonStyle(.bordered)
+        }
+        .padding()
+    }
+    
+    @ViewBuilder
+    private func loginView(invalidAuthentication: Bool = false) -> some View {
         Form {
             VStack(spacing: 30) {
+                Spacer()
+                
+                VStack(spacing: 10) {
+                    Image(systemName: "exclamationmark.octagon.fill")
+                        .symbolRenderingMode(.multicolor)
+                        .font(.largeTitle)
+                    
+                    Text("Invalid authentication.")
+                        .font(.headline)
+                }
+                
                 Spacer()
                 
                 VStack {
@@ -72,6 +134,7 @@ struct ContentView: View {
                 }
                 
                 Spacer()
+                Spacer()
                 
                 Button {
                     self.authenticate(storeCredentials: true)
@@ -90,7 +153,11 @@ struct ContentView: View {
         }
         .formStyle(.columns)
         .padding()
-        .onAppear(perform: self.tryReauthenticate)
+        .onAppear {
+            if !invalidAuthentication {
+                self.tryReauthenticate()
+            }
+        }
     }
     
     func authenticate(storeCredentials: Bool = true) {

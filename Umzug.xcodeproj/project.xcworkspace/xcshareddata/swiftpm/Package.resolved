@@ -1,5 +1,5 @@
 {
-  "originHash" : "5de3dd989650654d0667d0da26ce0016c9b1212bc3c9b3ddc4571a5ec20fea2b",
+  "originHash" : "a61adf465fbec41166b4b3982c0e126b6f9b5e6864a7636f7bbef8048dc7c49b",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -123,7 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/glasfisch3000/swiftui-api-interface.git",
       "state" : {
-        "revision" : "49d9785054713fae069c05c711f0a2b9f1d50281"
+        "revision" : "f0e711fcc62153bc9dbba2b08f48b098afea2244",
+        "version" : "2.0.0"
       }
     }
   ],

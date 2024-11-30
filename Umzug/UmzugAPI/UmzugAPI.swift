@@ -9,19 +9,38 @@ import SwiftUI
 import APIInterface
 import NIOCore
 import AsyncHTTPClient
+import Synchronization
 
-struct UmzugAPI: DynamicProperty, APIProtocol {
-    typealias Response = ByteBuffer?
+@Observable
+final class UmzugAPI: @unchecked Sendable {
+    enum APIStatus: Sendable {
+        case normal
+        case error(APIError)
+    }
     
-    var client: HTTPClient
-    var server: APIServer
-    var authentication: Authentication
+    let client: HTTPClient
+    let server: APIServer
+    let authentication: Authentication
     
     init(client: HTTPClient = .shared, server: APIServer, authentication: Authentication) {
         self.client = client
         self.server = server
         self.authentication = authentication
     }
+    
+    var apiError: APIError? = nil
+    private let apiErrorSemaphore = DispatchSemaphore(value: 1)
+    
+    var status: APIStatus {
+        switch self.apiError {
+        case .some(let error): .error(error)
+        case nil: .normal
+        }
+    }
+}
+
+extension UmzugAPI: APIProtocol {
+    typealias Response = ByteBuffer?
     
     func makeRequest(_ request: Request) async throws(APIError) -> Response {
         let path = request.path.joined(separator: "/")
@@ -34,7 +53,7 @@ struct UmzugAPI: DynamicProperty, APIProtocol {
         }.joined(separator: "&")
         
         let url = "\(self.server.scheme)://\(self.server.host):\(self.server.port)/api/\(path)?\(query)"
-        
+            
         do {
             let result = try await self.client.get(url: url, deadline: .now() + .seconds(10)).get()
             
@@ -51,9 +70,6 @@ struct UmzugAPI: DynamicProperty, APIProtocol {
             }
             
             return result.body
-        } catch let error as APIError {
-            print(error)
-            throw error
         } catch let error as HTTPClientError {
             print(error)
             switch error {
@@ -61,13 +77,18 @@ struct UmzugAPI: DynamicProperty, APIProtocol {
             case .alreadyShutdown: throw APIError.clientShutdown
             default: throw APIError.other
             }
-        } catch {
+        } catch let error as APIError {
+            print(error)
+            throw error
+        } catch let error {
             print(error)
             throw APIError.other
         }
     }
     
     func reportError(_ apiError: APIError) {
-        
+        self.apiErrorSemaphore.wait()
+        self.apiError = self.apiError ?? apiError
+        self.apiErrorSemaphore.signal()
     }
 }
