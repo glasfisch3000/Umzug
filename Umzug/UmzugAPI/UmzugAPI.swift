@@ -53,9 +53,14 @@ extension UmzugAPI: APIProtocol {
         }.joined(separator: "&")
         
         let url = "\(self.server.scheme)://\(self.server.host):\(self.server.port)/api/\(path)?\(query)"
+        let authContent = Data((self.authentication.username + ":" + self.authentication.password).utf8)
+        let authEncoded = "Basic " + authContent.base64EncodedString()
             
         do {
-            let result = try await self.client.get(url: url, deadline: .now() + .seconds(10)).get()
+            var request = try HTTPClient.Request(url: url, method: .GET)
+            request.headers.add(name: "Authorization", value: authEncoded)
+            
+            let result = try await self.client.execute(request: request, deadline: .now() + .seconds(10)).get()
             
             guard result.status == .ok else {
                 throw APIError.invalidStatus(result.status)
