@@ -26,8 +26,6 @@ extension Fetched where API == UmzugAPI {
                     throw .noContent
                 }
                 
-                print(body.getString(at: body.readerIndex, length: body.readableBytes, encoding: .utf8))
-                
                 if let error = try? JSONDecoder().decode(_APIResponseData<Failure>.self, from: body).error {
                     throw error
                 }
@@ -51,8 +49,6 @@ extension Fetched where API == UmzugAPI {
                 guard let body = response else {
                     return .success(nil)
                 }
-                
-                print(body.getString(at: body.readerIndex, length: body.readableBytes, encoding: .utf8))
                 
                 if let error = try? JSONDecoder().decode(_APIResponseData<Failure>.self, from: body).error {
                     throw error
