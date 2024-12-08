@@ -114,8 +114,6 @@ extension UmzugAPI {
                 throw .noContent
             }
             
-            print(try? body.getString(at: body.readerIndex, length: body.readableBytes))
-            
             if let error = try? JSONDecoder().decode(_APIResponseData<Failure>.self, from: body).error {
                 throw error
             }
