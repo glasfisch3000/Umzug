@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Packing: Sendable, Codable, Identifiable {
+struct Packing: Sendable, Codable, Identifiable, Hashable {
     var id: UUID
     var item: Item
     var box: Box

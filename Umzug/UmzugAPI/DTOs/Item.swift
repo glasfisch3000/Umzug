@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct Item: Sendable, Codable, Identifiable {
-    enum Priority: String, Sendable, Codable {
+struct Item: Sendable, Codable, Identifiable, Hashable {
+    enum Priority: String, Sendable, Codable, Hashable {
         case immediate = "immediate"
         case standard = "standard"
         case convenience = "convenience"
