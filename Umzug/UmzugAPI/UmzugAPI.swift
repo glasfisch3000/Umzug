@@ -57,7 +57,7 @@ extension UmzugAPI: APIProtocol {
         let authEncoded = "Basic " + authContent.base64EncodedString()
             
         do {
-            var request = try HTTPClient.Request(url: url, method: .GET)
+            var request = try HTTPClient.Request(url: url, method: request.method)
             request.headers.add(name: "Authorization", value: authEncoded)
             
             let result = try await self.client.execute(request: request, deadline: .now() + .seconds(10)).get()
