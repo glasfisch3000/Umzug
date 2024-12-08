@@ -10,13 +10,7 @@ import SwiftUI
 import APIInterface
 
 struct BoxesView: View {
-    enum FetchError: UmzugAPIFailure {
-        case invalidContent
-        case noContent
-        case serverError
-    }
-    
-    @UmzugFetched var boxes: Result<[Box], FetchError>?
+    @UmzugFetched var boxes: Result<[Box], BoxesListFailure>?
     
     var body: some View {
         switch boxes {
@@ -60,7 +54,7 @@ struct BoxesView: View {
     }
     
     @ViewBuilder
-    func failureView(_ error: FetchError) -> some View {
+    func failureView(_ error: BoxesListFailure) -> some View {
         VStack(alignment: .center) {
             Spacer()
             

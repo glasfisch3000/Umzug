@@ -97,3 +97,37 @@ extension UmzugAPI: APIProtocol {
         self.apiErrorSemaphore.signal()
     }
 }
+
+extension UmzugAPI {
+    private struct _APIResponseData<F: Decodable>: Decodable {
+        var error: F
+    }
+    
+    public func makeRequest<Success: Sendable & Decodable, Failure: UmzugAPIFailure>(
+        _ request: Request,
+        success: Success.Type = Success.self,
+        failure: Failure.Type = Failure.self
+    ) async throws(APIError) -> Result<Success, Failure> {
+        let response = try await self.makeRequest(request)
+        do throws(Failure) {
+            guard let body = response else {
+                throw .noContent
+            }
+            
+            print(try? body.getString(at: body.readerIndex, length: body.readableBytes))
+            
+            if let error = try? JSONDecoder().decode(_APIResponseData<Failure>.self, from: body).error {
+                throw error
+            }
+            
+            if let content = try? JSONDecoder().decode(Success.self, from: body) {
+                return .success(content)
+            } else {
+                throw .invalidContent
+            }
+        } catch {
+            print(error)
+            return .failure(error)
+        }
+    }
+}

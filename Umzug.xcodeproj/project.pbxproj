@@ -345,8 +345,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/glasfisch3000/swiftui-api-interface.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
+				kind = revision;
+				revision = e855cfa4315898c601c8353e4e79d4d048c83aaf;
 			};
 		};
 		36B121732CF38644004E4D20 /* XCRemoteSwiftPackageReference "async-http-client" */ = {
