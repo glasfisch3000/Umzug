@@ -11,6 +11,11 @@ struct Box: Sendable, Codable, Identifiable, Hashable {
     var id: UUID
     var title: String
     var packings: [Packing]?
+    
+    @discardableResult
+    func delete(on api: UmzugAPI) async throws(UmzugAPI.APIError) -> Result<Box, BoxesDeleteFailure> {
+        try await api.makeRequest(.deleteBox(id: self.id), success: Box.self, failure: BoxesDeleteFailure.self)
+    }
 }
 
 extension UmzugAPI.Request {
@@ -18,6 +23,10 @@ extension UmzugAPI.Request {
     
     static func createBox(title: String) -> Self {
         Self.init(method: .POST, path: ["boxes"], query: ["title": title])
+    }
+    
+    static func deleteBox(id: UUID) -> Self {
+        Self.init(method: .DELETE, path: ["boxes", id.uuidString], query: [:])
     }
 }
 
@@ -39,4 +48,14 @@ enum BoxesCreateFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case uniqueConstraintViolation(UniqueConstraintViolation)
+}
+
+enum BoxesDeleteFailure: UmzugAPIFailure {
+    enum ModelNotFoundCodingKeys: String, CodingKey {
+        case _0 = "modelID"
+    }
+    
+    case invalidContent
+    case noContent
+    case modelNotFound(UUID)
 }

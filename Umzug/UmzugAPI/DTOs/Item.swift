@@ -20,3 +20,13 @@ struct Item: Sendable, Codable, Identifiable, Hashable {
     var priority: Priority?
     var packings: [Packing]?
 }
+
+extension UmzugAPI.Request {
+    static var items: Self { Self.init(method: .GET, path: ["items"], query: [:]) }
+}
+
+enum ItemsListFailure: UmzugAPIFailure {
+    case invalidContent
+    case noContent
+    case serverError
+}
