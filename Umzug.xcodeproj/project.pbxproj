@@ -346,7 +346,7 @@
 			repositoryURL = "https://github.com/glasfisch3000/swiftui-api-interface.git";
 			requirement = {
 				kind = revision;
-				revision = e855cfa4315898c601c8353e4e79d4d048c83aaf;
+				revision = 4b809b8f4106594cd1a0af09e03f5d0940360c85;
 			};
 		};
 		36B121732CF38644004E4D20 /* XCRemoteSwiftPackageReference "async-http-client" */ = {
