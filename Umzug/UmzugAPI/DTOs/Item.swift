@@ -16,7 +16,7 @@ struct Item: Sendable, Codable, Identifiable, Hashable {
     
     var id: UUID
     var title: String
-    var priority: Priority?
+    var priority: Priority
     var packings: [Packing]?
 }
 
