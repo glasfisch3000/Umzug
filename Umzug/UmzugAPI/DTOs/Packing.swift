@@ -13,8 +13,15 @@ struct Packing: Sendable, Codable, Identifiable, Hashable {
     var box: Box
     var amount: Int
     
-    func delete(on api: UmzugAPI) async throws(UmzugAPI.APIError) -> Result<Packing, PackingsDeleteFailure> {
-        try await api.makeRequest(.deletePacking(id: self.id), success: Packing.self, failure: PackingsDeleteFailure.self)
+    struct DTO: Sendable, Codable, Identifiable, Hashable {
+        var id: UUID
+        var item: Item?
+        var box: Box?
+        var amount: Int
+    }
+    
+    func delete(on api: UmzugAPI) async throws(UmzugAPI.APIError) -> Result<Packing.DTO, PackingsDeleteFailure> {
+        try await api.makeRequest(.deletePacking(id: self.id), success: Packing.DTO.self, failure: PackingsDeleteFailure.self)
     }
 }
 

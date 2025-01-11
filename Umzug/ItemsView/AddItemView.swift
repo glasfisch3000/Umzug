@@ -79,23 +79,7 @@ struct AddItemView: View {
                 ProgressView()
             } else {
                 Button("Create") {
-                    Task {
-                        loading = true
-                        defer { self.loading = false }
-                        
-                        do throws(UmzugAPI.APIError) {
-                            let response = try await api.makeRequest(.createItem(title: title, priority: priority), success: Item.self, failure: ItemsCreateFailure.self)
-                            switch response {
-                            case .success(let item):
-                                dismiss()
-                                await self.onSuccess?(item)
-                            case .failure(let error):
-                                self.failure = .success(error)
-                            }
-                        } catch {
-                            self.failure = .failure(error)
-                        }
-                    }
+                    Task { await addItem() }
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(title.isEmpty)
@@ -109,6 +93,24 @@ struct AddItemView: View {
                 }
                 .keyboardShortcut(.cancelAction)
             }
+        }
+    }
+    
+    func addItem() async {
+        loading = true
+        defer { self.loading = false }
+        
+        do throws(UmzugAPI.APIError) {
+            let response = try await api.makeRequest(.createItem(title: title, priority: priority), success: Item.self, failure: ItemsCreateFailure.self)
+            switch response {
+            case .success(let item):
+                await self.onSuccess?(item)
+                dismiss()
+            case .failure(let error):
+                self.failure = .success(error)
+            }
+        } catch {
+            self.failure = .failure(error)
         }
     }
 }

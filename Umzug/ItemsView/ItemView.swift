@@ -40,7 +40,9 @@ struct ItemView: View {
                 
                 ForEach(sorted) { packing in
                     NavigationLink {
-                        PackingView(packing: packing, api: api)
+                        PackingView(packing: packing, api: api) {
+                            await $packings.reload()
+                        }
                     } label: {
                         Text(packing.item.title)
                             .badge(packing.amount)
@@ -68,18 +70,22 @@ struct ItemView: View {
         } set: {
             packingsToDelete = $0 ? packingsToDelete : []
         }) {
-            Button("Unpack", role: .destructive) {
-                let packingsToDelete = packingsToDelete
-                Task {
-                    for packing in packingsToDelete {
-                        do {
-                            _ = try await packing.delete(on: self.api).get()
-                        } catch {
-                            print(error)
-                        }
-                    }
+            Button("Unpack Item", role: .destructive) {
+                deletePackings(packingsToDelete)
+            }
+        }
+    }
+    
+    func deletePackings(_ packingsToDelete: Set<Packing>) {
+        Task {
+            for packing in packingsToDelete {
+                do {
+                    _ = try await packing.delete(on: self.api).get()
+                } catch {
+                    print(error)
                 }
             }
+            await $packings.reload()
         }
     }
 }

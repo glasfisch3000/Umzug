@@ -14,6 +14,9 @@ struct CreateNewItemPackingView: View {
     var box: Box
     
     @State var title: String
+    
+    var onSuccess: (() async -> Void)? = nil
+    
     @State private var amount = 1
     @State private var priority: Item.Priority = .standard
     
@@ -59,7 +62,7 @@ struct CreateNewItemPackingView: View {
                 failureView()
             }
         }
-        .navigationTitle("Pack item")
+        .navigationTitle("Pack Item")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(content: toolbarView)
         .onAppear {
@@ -102,47 +105,33 @@ struct CreateNewItemPackingView: View {
                 ProgressView()
             } else {
                 Button("Pack") {
-                    Task {
-                        loading = true
-                        defer { loading = false }
-                        
-                        do throws(UmzugAPI.APIError) {
-                            // load item, don't throw failures because that doesn't work so we unwrap them instead
-                            switch try await createItem() {
-                            case .failure(let error): self.itemFailure = error
-                            case .success(let item):
-                                switch try await pack(item.id) {
-                                case .failure(let error): self.packingFailure = error
-                                case .success(_): dismiss()
-                                }
-                            }
-                        } catch let error {
-                            self.apiError = error
-                            return
-                        }
-                    }
+                    Task { await pack() }
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(amount <= 0)
                 .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
+    }
+    
+    func pack() async {
+        loading = true
+        defer { loading = false }
         
-        if !loading {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel", role: .cancel) {
+        do throws(UmzugAPI.APIError) {
+            // create item and packing, don't throw failures because that doesn't work so we unwrap them instead
+            switch try await api.makeRequest(.createItem(title: title, priority: priority), success: Item.self, failure: ItemsCreateFailure.self) {
+            case .failure(let error): self.itemFailure = error
+            case .success(let item):
+                switch try await api.makeRequest(.createPacking(item: item.id, box: box.id, amount: amount), success: Packing.DTO.self, failure: PackingsCreateFailure.self) {
+                case .failure(let error): self.packingFailure = error
+                case .success(_):
+                    await onSuccess?()
                     dismiss()
                 }
-                .keyboardShortcut(.cancelAction)
             }
+        } catch let error {
+            self.apiError = error
         }
-    }
-    
-    func createItem() async throws(UmzugAPI.APIError) -> Result<Item, ItemsCreateFailure> {
-        try await api.makeRequest(.createItem(title: title, priority: priority), success: Item.self, failure: ItemsCreateFailure.self)
-    }
-    
-    func pack(_ item: UUID) async throws(UmzugAPI.APIError) -> Result<Packing, PackingsCreateFailure> {
-        try await api.makeRequest(.createPacking(item: item, box: box.id, amount: amount), success: Packing.self, failure: PackingsCreateFailure.self)
     }
 }

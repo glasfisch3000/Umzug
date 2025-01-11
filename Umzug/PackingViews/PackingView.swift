@@ -13,6 +13,8 @@ struct PackingView: View {
     var packing: Packing
     var api: UmzugAPI
     
+    var onSuccess: (() async -> Void)? = nil
+    
     @State private var amountOffset = 0
     
     @State private var loading = false
@@ -22,20 +24,7 @@ struct PackingView: View {
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .leading) {
-                    Text(packing.item.title)
-                        .font(.headline)
-                    
-                    Group {
-                        switch packing.item.priority {
-                        case .immediate: Text("Immediate Priority").foregroundStyle(.red)
-                        case .standard: Text("Standard Priority").foregroundStyle(.yellow)
-                        case .longTerm: Text("Long Term Priority").foregroundStyle(.green)
-                        }
-                    }
-                    .font(.caption)
-                    .bold()
-                }
+                ItemPreview(item: packing.item)
                 
                 Label(packing.box.title, systemImage: "shippingbox")
             }
@@ -55,6 +44,11 @@ struct PackingView: View {
             } footer: {
                 failureView()
             }
+            
+            Button("Unpack item", systemImage: "trash", role: .destructive) {
+                Task { await deleteItem() }
+            }
+            .symbolRenderingMode(.multicolor)
         }
         .navigationTitle("Edit Packing")
         .navigationBarTitleDisplayMode(.inline)
@@ -64,20 +58,7 @@ struct PackingView: View {
                     ProgressView()
                 } else {
                     Button("Save") {
-                        Task {
-                            loading = true
-                            defer { loading = false }
-                            
-                            do throws(UmzugAPI.APIError) {
-                                switch try await api.makeRequest(.updatePacking(packing.id, amount: packing.amount+amountOffset), success: Packing.self, failure: PackingsUpdateFailure.self) {
-                                case .success(_): dismiss()
-                                case .failure(let error): self.updateFailure = error
-                                }
-                            } catch let error {
-                                self.apiError = error
-                                return
-                            }
-                        }
+                        Task { await save() }
                     }
                     .keyboardShortcut(.defaultAction)
                 }
@@ -101,6 +82,36 @@ struct PackingView: View {
             } icon: {
                 Image(systemName: "exclamationmark.triangle.fill")
             }
+        }
+    }
+    
+    func save() async {
+        loading = true
+        defer { loading = false }
+        
+        do throws(UmzugAPI.APIError) {
+            switch try await api.makeRequest(.updatePacking(packing.id, amount: packing.amount+amountOffset), success: Packing.DTO.self, failure: PackingsUpdateFailure.self) {
+            case .failure(let error): self.updateFailure = error
+            case .success(_):
+                await onSuccess?()
+                dismiss()
+            }
+        } catch let error {
+            self.apiError = error
+        }
+    }
+    
+    func deleteItem() async {
+        do throws(UmzugAPI.APIError) {
+            switch try await packing.delete(on: self.api) {
+            case .failure(let failure):
+                print(failure)
+            case .success(_):
+                await onSuccess?()
+                dismiss()
+            }
+        } catch {
+            self.apiError = error
         }
     }
 }

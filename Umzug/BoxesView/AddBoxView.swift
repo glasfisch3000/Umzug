@@ -64,23 +64,7 @@ struct AddBoxView: View {
                 ProgressView()
             } else {
                 Button("Create") {
-                    Task {
-                        loading = true
-                        defer { self.loading = false }
-                        
-                        do throws(UmzugAPI.APIError) {
-                            let response = try await api.makeRequest(.createBox(title: title), success: Box.self, failure: BoxesCreateFailure.self)
-                            switch response {
-                            case .success(let box):
-                                dismiss()
-                                await self.onSuccess?(box)
-                            case .failure(let error):
-                                self.failure = .success(error)
-                            }
-                        } catch {
-                            self.failure = .failure(error)
-                        }
-                    }
+                    Task { await addBox() }
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(title.isEmpty)
@@ -95,6 +79,24 @@ struct AddBoxView: View {
                 }
                 .keyboardShortcut(.cancelAction)
             }
+        }
+    }
+    
+    func addBox() async {
+        loading = true
+        defer { self.loading = false }
+        
+        do throws(UmzugAPI.APIError) {
+            let response = try await api.makeRequest(.createBox(title: title), success: Box.self, failure: BoxesCreateFailure.self)
+            switch response {
+            case .success(let box):
+                await self.onSuccess?(box)
+                dismiss()
+            case .failure(let error):
+                self.failure = .success(error)
+            }
+        } catch {
+            self.failure = .failure(error)
         }
     }
 }

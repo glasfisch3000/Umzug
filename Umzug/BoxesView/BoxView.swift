@@ -37,11 +37,6 @@ struct BoxView: View {
         }
         .navigationTitle(box.title)
         .navigationBarTitleDisplayMode(.large)
-        .sheet(isPresented: $newItemSheetPresented) {
-            NavigationStack {
-                CreateNewItemPackingView(api: api, box: box, title: textInput)
-            }
-        }
     }
     
     @ViewBuilder
@@ -49,34 +44,16 @@ struct BoxView: View {
         List {
             let textInput = self.textInput.trimmingCharacters(in: .whitespacesAndNewlines)
             
-            if textInput.isEmpty { // no search text entered, display already packed items
-                Section {
-                    let sorted = packings.sorted { $0.item.title < $1.item.title }
-                    
-                    ForEach(sorted) { packing in
-                        NavigationLink {
-                            PackingView(packing: packing, api: api)
-                        } label: {
-                            Text(packing.item.title)
-                                .badge(packing.amount)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        self.packingsToDelete = Set(indexSet.map { sorted[$0] })
-                    }
-                } header: {
-                    if !packings.isEmpty {
-                        Text("Packed Items")
-                    }
-                } footer: {
-                    if packings.isEmpty {
-                        Text("No items packed")
-                            .frame(maxWidth: .infinity, alignment: .center)
+            if !textInput.isEmpty {
+                Section("Create New") {
+                    Button("\"" + textInput + "\"", systemImage: "plus") {
+                        newItemSheetPresented = true
                     }
                 }
-            } else { // search active, filter items
-                searchView(textInput, items: items, packings: packings)
             }
+            
+            packedItems(packings: packings, search: textInput.isEmpty ? nil : textInput)
+            unpackedItems(items: items, packings: packings, search: textInput.isEmpty ? nil : textInput)
         }
         .searchable(text: $textInput, placement: .toolbar, prompt: "Search Items")
         .refreshable {
@@ -88,71 +65,98 @@ struct BoxView: View {
         } set: {
             packingsToDelete = $0 ? packingsToDelete : []
         }) {
-            Button("Unpack Items") {
-                let packingsToDelete = packingsToDelete
-                Task {
-                    for packing in packingsToDelete {
-                        do {
-                            _ = try await packing.delete(on: self.api).get()
-                        } catch {
-                            print(error)
-                        }
-                    }
-                }
+            Button("Unpack Item\(packingsToDelete.count == 1 ? "" : "s")", role: .destructive) {
+                deletePackings(packingsToDelete)
             }
-            
-            Button("Delete Items", role: .destructive) {
-                let packingsToDelete = packingsToDelete
-                Task {
-                    for packing in packingsToDelete {
-                        do {
-                            _ = try await packing.delete(on: self.api).get()
-                            _ = try await packing.item.delete(on: self.api).get()
-                        } catch {
-                            print(error)
-                        }
-                    }
+        }
+        .sheet(isPresented: $newItemSheetPresented) {
+            NavigationStack {
+                CreateNewItemPackingView(api: api, box: box, title: textInput) {
+                    await $items.reload()
+                    await $items.reload()
                 }
             }
         }
     }
     
     @ViewBuilder
-    func searchView(_ input: String, items: [Item], packings: [Packing]) -> some View {
-        let filteredItems = items.filter {
-            if !textInput.isEmpty {
-                $0.title.localizedCaseInsensitiveContains(textInput)
-            } else {
-                true
+    func packedItems(packings: [Packing], search: String?) -> some View {
+        Section {
+            let filtered = packings
+                .filter {
+                    if let search = search {
+                        $0.item.title.localizedCaseInsensitiveContains(search)
+                    } else {
+                        true
+                    }
+                }
+                .sorted { $0.item.title < $1.item.title }
+            
+            ForEach(filtered) { packing in
+                NavigationLink {
+                    PackingView(packing: packing, api: api) {
+                        await $packings.reload()
+                    }
+                } label: {
+                    ItemPreview(item: packing.item)
+                        .badge(packing.amount)
+                }
+            }
+            .onDelete { indexSet in
+                self.packingsToDelete = Set(indexSet.map { filtered[$0] })
+            }
+        } header: {
+            Text("Packed Items")
+        } footer: {
+            if packings.isEmpty && search == nil {
+                Text("No items packed")
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
-        
-        Section("Create New") {
-            Button("\"\(input)\"", systemImage: "plus") {
-                newItemSheetPresented = true
+    }
+    
+    @ViewBuilder
+    func unpackedItems(items: [Item], packings: [Packing], search: String?) -> some View {
+        let filteredItems = items
+            .filter { item in
+                !packings.contains {
+                    $0.item.id == item.id
+                }
+            }.filter { item in
+                if let search = search {
+                    item.title.localizedCaseInsensitiveContains(search)
+                } else {
+                    true
+                }
             }
-        }
         
         Section {
             ForEach(filteredItems) { item in
-                if let packing = packings.first(where: { item.id == $0.item.id }) {
-                    NavigationLink {
-                        PackingView(packing: packing, api: api)
-                    } label: {
-                        Text(item.title)
-                            .badge(packing.amount.description)
+                NavigationLink {
+                    CreatePackingView(api: api, item: item, box: box) {
+                        await $packings.reload()
                     }
-                } else {
-                    NavigationLink(item.title) {
-                        CreatePackingView(api: api, item: item, box: box)
-                    }
+                } label: {
+                    ItemPreview(item: item)
                 }
             }
-        } footer: {
-            if filteredItems.isEmpty {
-                Text("No items found")
-                    .frame(maxWidth: .infinity, alignment: .center)
+        } header: {
+            if !filteredItems.isEmpty {
+                Text("Other items")
             }
+        }
+    }
+    
+    func deletePackings(_ packingsToDelete: Set<Packing>) {
+        Task {
+            for packing in packingsToDelete {
+                do {
+                    _ = try await packing.delete(on: self.api).get()
+                } catch {
+                    print(error)
+                }
+            }
+            await $packings.reload()
         }
     }
 }
