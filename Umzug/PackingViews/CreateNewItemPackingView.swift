@@ -1,5 +1,5 @@
 //
-//  CreatePackingView.swift
+//  CreateNewItemPackingView.swift
 //  Umzug
 //
 //  Created by Jakob Danckwerts on 23.12.24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CreatePackingView: View {
+struct CreateNewItemPackingView: View {
     @Environment(\.dismiss) private var dismiss
     
     var api: UmzugAPI
@@ -37,14 +37,9 @@ struct CreatePackingView: View {
                     ForEach(Umzug.Item.Priority.allCases) { priority in
                         Group {
                             switch priority {
-                            case .immediate:
-                                Text("Immediate")
-                                    .foregroundStyle(.red)
-                            case .standard:
-                                Text("Standard")
-                                    .foregroundStyle(.yellow)
-                            case .longTerm:
-                                Text("Long Term")
+                            case .immediate: Text("Immediate")
+                            case .standard: Text("Standard")
+                            case .longTerm: Text("Long Term")
                             }
                         }
                         .tag(priority)

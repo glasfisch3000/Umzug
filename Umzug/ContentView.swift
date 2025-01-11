@@ -11,6 +11,7 @@ import APIInterface
 struct ContentView: View {
     enum TabSelection: String, Hashable {
         case boxes
+        case items
     }
     
     @AppStorage("hostname") private var hostname = ""
@@ -36,7 +37,15 @@ struct ContentView: View {
     
     @ViewBuilder
     private func apiView(_ api: UmzugAPI) -> some View {
-        BoxesView(boxes: api.fetched(for: .boxes))
+        TabView(selection: $tabSelection) {
+            Tab("Boxes", systemImage: "shippingbox", value: .boxes) {
+                BoxesView(boxes: api.fetched(for: .boxes))
+            }
+            
+            Tab("Items", systemImage: "list.bullet", value: .items) {
+                ItemsView(items: api.fetched(for: .items))
+            }
+        }
     }
     
     @ViewBuilder

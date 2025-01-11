@@ -39,7 +39,7 @@ struct BoxView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $newItemSheetPresented) {
             NavigationStack {
-                CreatePackingView(api: api, box: box, title: textInput)
+                CreateNewItemPackingView(api: api, box: box, title: textInput)
             }
         }
     }
@@ -55,7 +55,7 @@ struct BoxView: View {
                     
                     ForEach(sorted) { packing in
                         NavigationLink {
-                            PackingView(packing: packing, api: api, box: box)
+                            PackingView(packing: packing, api: api)
                         } label: {
                             Text(packing.item.title)
                                 .badge(packing.amount)
@@ -65,10 +65,12 @@ struct BoxView: View {
                         self.packingsToDelete = Set(indexSet.map { sorted[$0] })
                     }
                 } header: {
-                    Text("Packed Items")
+                    if !packings.isEmpty {
+                        Text("Packed Items")
+                    }
                 } footer: {
                     if packings.isEmpty {
-                        Text("No items found")
+                        Text("No items packed")
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -133,11 +135,17 @@ struct BoxView: View {
         
         Section {
             ForEach(filteredItems) { item in
-                NavigationLink {
-                    PackingView(item: item, api: api, box: box)
-                } label: {
-                    Text(item.title)
-                        .badge(packings.first(where: { item.id == $0.item.id })?.amount.description)
+                if let packing = packings.first(where: { item.id == $0.item.id }) {
+                    NavigationLink {
+                        PackingView(packing: packing, api: api)
+                    } label: {
+                        Text(item.title)
+                            .badge(packing.amount.description)
+                    }
+                } else {
+                    NavigationLink(item.title) {
+                        CreatePackingView(api: api, item: item, box: box)
+                    }
                 }
             }
         } footer: {
