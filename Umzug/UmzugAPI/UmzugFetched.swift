@@ -11,3 +11,11 @@ extension Fetched where API == UmzugAPI {
         }
     }
 }
+
+extension UmzugAPI {
+    public func fetched<Success: Sendable & Decodable, Failure: UmzugAPIFailure>(for request: UmzugAPI.Request,
+                                                                                 success: Success.Type = Success.self,
+                                                                                 failure: Failure.Type = Failure.self) -> UmzugFetched<Result<Success, Failure>> {
+        UmzugFetched(api: self, request: request)
+    }
+}

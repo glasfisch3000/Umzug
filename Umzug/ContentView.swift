@@ -6,12 +6,19 @@
 //
 
 import SwiftUI
+import APIInterface
 
 struct ContentView: View {
+    enum TabSelection: String, Hashable {
+        case boxes
+    }
+    
     @AppStorage("hostname") private var hostname = ""
     @AppStorage("port") private var port: UInt16 = 443
     @State private var username = ""
     @State private var password = ""
+    
+    @AppStorage("tab-selection") private var tabSelection: TabSelection = .boxes
     
     @State private var api: UmzugAPI? = nil
     
@@ -29,15 +36,7 @@ struct ContentView: View {
     
     @ViewBuilder
     private func apiView(_ api: UmzugAPI) -> some View {
-        TabView {
-            Tab("Inspect", systemImage: "square.grid.2x2") {
-                InspectorView(api: api)
-            }
-            
-            Tab("Add", systemImage: "plus") {
-                CreatorView(api: api)
-            }
-        }
+        BoxesView(boxes: api.fetched(for: .boxes))
     }
     
     @ViewBuilder

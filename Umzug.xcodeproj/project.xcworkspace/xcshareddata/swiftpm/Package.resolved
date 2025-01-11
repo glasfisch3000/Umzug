@@ -123,7 +123,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/glasfisch3000/swiftui-api-interface.git",
       "state" : {
-        "revision" : "4b809b8f4106594cd1a0af09e03f5d0940360c85"
+        "revision" : "f890c24655acfb79773395b55ff3947cc9c4585a"
       }
     }
   ],

@@ -42,6 +42,7 @@ final class UmzugAPI: @unchecked Sendable {
 extension UmzugAPI: APIProtocol {
     typealias Response = ByteBuffer?
     
+    // Sends a raw API request and checks for errors but doesn't decode a response
     func makeRequest(_ request: Request) async throws(APIError) -> Response {
         let path = request.path.joined(separator: "/")
         let query = request.query.compactMap {
@@ -103,6 +104,7 @@ extension UmzugAPI {
         var error: F
     }
     
+    // Sends a request and attempts to decode specific data
     public func makeRequest<Success: Sendable & Decodable, Failure: UmzugAPIFailure>(
         _ request: Request,
         success: Success.Type = Success.self,
@@ -123,7 +125,7 @@ extension UmzugAPI {
             } else {
                 throw .invalidContent
             }
-        } catch {
+        } catch { // if there's a failure, catch it, print it, then go on
             print(error)
             return .failure(error)
         }

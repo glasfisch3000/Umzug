@@ -12,7 +12,6 @@ struct Box: Sendable, Codable, Identifiable, Hashable {
     var title: String
     var packings: [Packing]?
     
-    @discardableResult
     func delete(on api: UmzugAPI) async throws(UmzugAPI.APIError) -> Result<Box, BoxesDeleteFailure> {
         try await api.makeRequest(.deleteBox(id: self.id), success: Box.self, failure: BoxesDeleteFailure.self)
     }
@@ -30,6 +29,11 @@ extension UmzugAPI.Request {
     }
 }
 
+
+enum BoxConstraintViolation: Decodable {
+    case box_unique(title: String)
+}
+
 enum BoxesListFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
@@ -37,17 +41,13 @@ enum BoxesListFailure: UmzugAPIFailure {
 }
 
 enum BoxesCreateFailure: UmzugAPIFailure {
-    enum UniqueConstraintViolationCodingKeys: String, CodingKey {
+    enum ConstraintViolationCodingKeys: String, CodingKey {
         case _0 = "constraint"
-    }
-    
-    enum UniqueConstraintViolation: Decodable {
-        case boxes(title: String)
     }
     
     case invalidContent
     case noContent
-    case uniqueConstraintViolation(UniqueConstraintViolation)
+    case constraintViolation(BoxConstraintViolation)
 }
 
 enum BoxesDeleteFailure: UmzugAPIFailure {
