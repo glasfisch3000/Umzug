@@ -88,7 +88,7 @@ struct BoxesView: View {
     
     @ToolbarContentBuilder
     func toolbarView() -> some ToolbarContent {
-        ToolbarItem(id: "", placement: .primaryAction) {
+        ToolbarItem(placement: .primaryAction) {
             Button("Add Box", systemImage: "plus") {
                 addBoxSheetPresented = true
             }
