@@ -29,13 +29,8 @@ struct Item: Sendable, Codable, Identifiable, Hashable {
 extension UmzugAPI.Request {
     static var items: Self { Self.init(method: .GET, path: ["items"], query: [:]) }
     
-    static func createItem(title: String, priority: Item.Priority? = nil) -> Self {
-        var query: [String: String] = ["title": title]
-        if let priority = priority {
-            query["priority"] = priority.rawValue
-        }
-        
-        return Self.init(method: .POST, path: ["items"], query: query)
+    static func createItem(title: String, priority: Item.Priority) -> Self {
+        return Self.init(method: .POST, path: ["items"], query: ["title": title, "priority": priority.rawValue])
     }
     
     static func deleteItem(id: UUID) -> Self {
