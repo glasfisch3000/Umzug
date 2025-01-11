@@ -14,6 +14,8 @@ struct BoxView: View {
     @State private var textInput = ""
     @State private var newItemSheetPresented = false
     
+    @State private var searchIsPresented = false
+    
     @UmzugFetched var items: Result<[Item], ItemsListFailure>?
     @UmzugFetched var packings: Result<[Packing], PackingsListFailure>?
     
@@ -41,21 +43,40 @@ struct BoxView: View {
     
     @ViewBuilder
     func valueView(_ items: [Item], packings: [Packing]) -> some View {
-        List {
-            let textInput = self.textInput.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if !textInput.isEmpty {
-                Section("Create New") {
-                    Button("\"" + textInput + "\"", systemImage: "plus") {
-                        newItemSheetPresented = true
+        VStack(spacing: 0) {
+            Form {
+                let textInput = self.textInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                if !textInput.isEmpty {
+                    Section("Create New") {
+                        Button("\"" + textInput + "\"", systemImage: "plus") {
+                            newItemSheetPresented = true
+                        }
                     }
                 }
+                
+                packedItems(packings: packings, search: textInput.isEmpty ? nil : textInput)
+                unpackedItems(items: items, packings: packings, search: textInput.isEmpty ? nil : textInput)
             }
+            .scrollClipDisabled()
             
-            packedItems(packings: packings, search: textInput.isEmpty ? nil : textInput)
-            unpackedItems(items: items, packings: packings, search: textInput.isEmpty ? nil : textInput)
+            if !searchIsPresented {
+                Button {
+                    newItemSheetPresented = true
+                } label: {
+                    Text("Add new item…")
+                        .font(.title3)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonBorderShape(.roundedRectangle(radius: 10))
+                .buttonStyle(.borderedProminent)
+                .padding(.horizontal)
+                .padding(.bottom)
+                .padding(.top, -5)
+                .background()
+            }
         }
-        .searchable(text: $textInput, placement: .toolbar, prompt: "Search Items")
+        .searchable(text: $textInput, isPresented: $searchIsPresented, placement: .toolbar, prompt: "Search Items")
         .refreshable {
             await $items.reload()
             await $packings.reload()
@@ -65,7 +86,7 @@ struct BoxView: View {
         } set: {
             packingsToDelete = $0 ? packingsToDelete : []
         }) {
-            Button("Unpack Item\(packingsToDelete.count == 1 ? "" : "s")", role: .destructive) {
+            Button("Unpack \(packingsToDelete.count) item\(packingsToDelete.count == 1 ? "" : "s")", role: .destructive) {
                 deletePackings(packingsToDelete)
             }
         }
@@ -73,7 +94,7 @@ struct BoxView: View {
             NavigationStack {
                 CreateNewItemPackingView(api: api, box: box, title: textInput) {
                     await $items.reload()
-                    await $items.reload()
+                    await $packings.reload()
                 }
             }
         }
