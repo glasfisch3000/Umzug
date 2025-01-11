@@ -81,6 +81,7 @@ struct BoxView: View {
             await $items.reload()
             await $packings.reload()
         }
+        .toolbar(content: toolbarView)
         .confirmationDialog("Delete \(packingsToDelete.count) item\(packingsToDelete.count == 1 ? "" : "s")?", isPresented: Binding {
             !packingsToDelete.isEmpty
         } set: {
@@ -165,6 +166,13 @@ struct BoxView: View {
             if !filteredItems.isEmpty {
                 Text("Other items")
             }
+        }
+    }
+    
+    @ToolbarContentBuilder
+    func toolbarView() -> some ToolbarContent {
+        ToolbarItem(placement: .automatic) {
+            EditButton()
         }
     }
     
