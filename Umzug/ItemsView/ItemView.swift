@@ -44,7 +44,7 @@ struct ItemView: View {
                             await $packings.reload()
                         }
                     } label: {
-                        Text(packing.item.title)
+                        Text(packing.box.title)
                             .badge(packing.amount)
                     }
                 }
