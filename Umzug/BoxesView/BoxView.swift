@@ -26,6 +26,8 @@ struct BoxView: View {
             case (nil, _), (_, nil):
                 if let error = $items.apiError {
                     apiErrorView(error)
+                } else if let error = $packings.apiError {
+                    apiErrorView(error)
                 } else {
                     loadingView()
                 }
