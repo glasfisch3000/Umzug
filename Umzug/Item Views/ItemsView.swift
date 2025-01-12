@@ -30,8 +30,24 @@ struct ItemsView: View {
     @ViewBuilder
     func valueView(_ items: [Item]) -> some View {
         NavigationStack(path: $selection) {
-            List(items) { item in
-                itemView(item: item)
+            List {
+                let grouped = items.grouped(by: \.priority)
+                
+                ForEach(Item.Priority.allCases) { priority in
+                    Section {
+                        if let group = grouped[priority] {
+                            ForEach(group.sorted { $0.title < $1.title }) { item in
+                                itemView(item: item)
+                            }
+                        }
+                    } header: {
+                        switch priority {
+                        case .immediate: Text("Immediate Priority").foregroundStyle(.red)
+                        case .standard: Text("Standard Priority").foregroundStyle(.yellow)
+                        case .longTerm: Text("Long Term Priority").foregroundStyle(.green)
+                        }
+                    }
+                }
             }
             .refreshable {
                 await $items.reload()
