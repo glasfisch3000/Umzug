@@ -24,6 +24,10 @@ extension UmzugAPI.Request {
         Self.init(method: .POST, path: ["boxes"], query: ["title": title])
     }
     
+    static func updateBox(_ id: UUID, title: String) -> Self {
+        return Self.init(method: .PATCH, path: ["boxes", id.uuidString], query: ["title": title])
+    }
+    
     static func deleteBox(id: UUID) -> Self {
         Self.init(method: .DELETE, path: ["boxes", id.uuidString], query: [:])
     }
@@ -60,6 +64,29 @@ enum BoxesCreateFailure: UmzugAPIFailure {
         switch self {
         case .invalidContent, .noContent: "Received an invalid or empty API response."
         case .constraintViolation(.box_unique(title: _)): "A box with this title already exists."
+        }
+    }
+}
+
+enum BoxesUpdateFailure: UmzugAPIFailure {
+    enum ConstraintViolationCodingKeys: String, CodingKey {
+        case _0 = "constraint"
+    }
+    
+    enum ModelNotFoundCodingKeys: String, CodingKey {
+        case _0 = "modelID"
+    }
+    
+    case invalidContent
+    case noContent
+    case constraintViolation(BoxConstraintViolation)
+    case modelNotFound(UUID)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .constraintViolation(.box_unique(title: _)): "A box with this title already exists."
+        case .modelNotFound(let id): "Box not found for ID \(id)."
         }
     }
 }

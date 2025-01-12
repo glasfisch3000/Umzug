@@ -9,7 +9,7 @@ import SwiftUI
 
 struct BoxView: View {
     var api: UmzugAPI
-    var box: Box
+    @State var box: Box
     
     @State private var textInput = ""
     @State private var newItemSheetPresented = false
@@ -20,6 +20,7 @@ struct BoxView: View {
     @UmzugFetched var packings: Result<[Packing], PackingsListFailure>?
     
     @State private var packingsToDelete: Set<Packing> = []
+    @State private var editSheetPresented = false
     
     var body: some View {
         Group {
@@ -97,6 +98,13 @@ struct BoxView: View {
                 }
             }
         }
+        .sheet(isPresented: $editSheetPresented) {
+            NavigationStack {
+                EditBoxView(box: box, api: api) { box in
+                    self.box.title = box.title
+                }
+            }
+        }
     }
     
     @ViewBuilder
@@ -169,8 +177,10 @@ struct BoxView: View {
     
     @ToolbarContentBuilder
     func toolbarView() -> some ToolbarContent {
-        ToolbarItem(placement: .automatic) {
-            EditButton()
+        ToolbarItem(placement: .primaryAction) {
+            Button("Edit", systemImage: "ellipsis.circle") {
+                editSheetPresented = true
+            }
         }
     }
     
