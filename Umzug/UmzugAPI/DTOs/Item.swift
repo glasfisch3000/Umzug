@@ -33,6 +33,15 @@ extension UmzugAPI.Request {
         return Self.init(method: .POST, path: ["items"], query: ["title": title, "priority": priority.rawValue])
     }
     
+    static func updateItem(_ id: UUID, title: String?, priority: Item.Priority? = nil) -> Self {
+        var query: [String: String] = [:]
+        
+        if let title = title { query["title"] = title }
+        if let priority = priority { query["priority"] = priority.rawValue }
+        
+        return Self.init(method: .PATCH, path: ["items", id.uuidString], query: query)
+    }
+    
     static func deleteItem(id: UUID) -> Self {
         Self.init(method: .DELETE, path: ["items", id.uuidString], query: [:])
     }
@@ -69,6 +78,29 @@ enum ItemsCreateFailure: UmzugAPIFailure {
         switch self {
         case .invalidContent, .noContent: "Received an invalid or empty API response."
         case .constraintViolation(.item_unique(title: _)): "An item with this title already exists."
+        }
+    }
+}
+
+enum ItemsUpdateFailure: UmzugAPIFailure {
+    enum ConstraintViolationCodingKeys: String, CodingKey {
+        case _0 = "constraint"
+    }
+    
+    enum ModelNotFoundCodingKeys: String, CodingKey {
+        case _0 = "modelID"
+    }
+    
+    case invalidContent
+    case noContent
+    case constraintViolation(ItemConstraintViolation)
+    case modelNotFound(UUID)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .constraintViolation(.item_unique(title: _)): "An item with this title already exists."
+        case .modelNotFound(let id): "Item not found for ID \(id)."
         }
     }
 }

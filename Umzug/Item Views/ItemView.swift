@@ -9,11 +9,12 @@ import SwiftUI
 
 struct ItemView: View {
     var api: UmzugAPI
-    var item: Item
+    @State var item: Item
     
     @UmzugFetched var packings: Result<[Packing], PackingsListFailure>?
     
     @State private var packingsToDelete: Set<Packing> = []
+    @State private var editSheetPresented = false
     
     var body: some View {
         Group {
@@ -65,6 +66,7 @@ struct ItemView: View {
         .refreshable {
             await $packings.reload()
         }
+        .toolbar(content: toolbarView)
         .confirmationDialog("Unpack from \(packingsToDelete.count) box\(packingsToDelete.count == 1 ? "" : "es")?", isPresented: Binding {
             !packingsToDelete.isEmpty
         } set: {
@@ -72,6 +74,23 @@ struct ItemView: View {
         }) {
             Button("Unpack Item", role: .destructive) {
                 deletePackings(packingsToDelete)
+            }
+        }
+        .sheet(isPresented: $editSheetPresented) {
+            NavigationStack {
+                EditItemView(item: item, api: api) { item in
+                    self.item.title = item.title
+                    self.item.priority = item.priority
+                }
+            }
+        }
+    }
+    
+    @ToolbarContentBuilder
+    func toolbarView() -> some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button("Edit", systemImage: "ellipsis.circle") {
+                editSheetPresented = true
             }
         }
     }
