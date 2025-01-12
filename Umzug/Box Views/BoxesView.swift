@@ -30,8 +30,11 @@ struct BoxesView: View {
     @ViewBuilder
     func valueView(_ boxes: [Box]) -> some View {
         NavigationStack(path: $selection) {
-            LazyHGrid(rows: [.init(.adaptive(minimum: 150, maximum: 200), alignment: .leading)], alignment: .top, pinnedViews: .sectionHeaders) {
-                ForEach(boxes, content: boxView(box:))
+            ScrollView(.vertical) {
+                LazyVGrid(columns: [.init(.adaptive(minimum: 150, maximum: 200), alignment: .leading)], alignment: .leading, pinnedViews: .sectionHeaders) {
+                    ForEach(boxes.sorted { $0.title < $1.title }, content: boxView(box:))
+                }
+                .padding()
             }
             .refreshable {
                 await $boxes.reload()
