@@ -15,7 +15,19 @@ struct PackingView: View {
     
     var onSuccess: (() async -> Void)? = nil
     
+    init(packing: Packing, api: UmzugAPI, onSuccess: (() async -> Void)? = nil) {
+        self.packing = packing
+        self.api = api
+        self.onSuccess = onSuccess
+        
+        self._boxes = api.fetched(for: .boxes)
+        self.box = packing.box
+    }
+    
     @State private var amountOffset = 0
+    
+    @UmzugFetched private var boxes: Result<[Box], BoxesListFailure>?
+    @State private var box: Box
     
     @State private var loading = false
     @State private var apiError: UmzugAPI.APIError?
@@ -26,7 +38,28 @@ struct PackingView: View {
             Section {
                 ItemPreview(item: packing.item)
                 
-                Label(packing.box.title, systemImage: "shippingbox")
+                switch boxes {
+                case .success(let boxes):
+                    Picker("Box", systemImage: "shippingbox", selection: $box) {
+                        ForEach(boxes) { box in
+                            Text(box.title)
+                                .tag(box)
+                        }
+                    }
+                default:
+                    Label(box.title, systemImage: "shippingbox")
+                }
+            } footer: {
+                switch boxes {
+                case .success(let success): EmptyView()
+                case .failure(let failure): APIFailureLabel(failure: failure, describe: \.description)
+                case nil:
+                    if let error = $boxes.apiError {
+                        APIErrorLabel(error: error)
+                    } else {
+                        FetchedLoadingLabel(fetched: $boxes)
+                    }
+                }
             }
             
             let valueBinding = Binding {
@@ -75,7 +108,7 @@ struct PackingView: View {
         defer { loading = false }
         
         do throws(UmzugAPI.APIError) {
-            switch try await api.makeRequest(.updatePacking(packing.id, amount: packing.amount+amountOffset), success: Packing.DTO.self, failure: PackingsUpdateFailure.self) {
+            switch try await api.makeRequest(.updatePacking(packing.id, box: box.id, amount: packing.amount+amountOffset), success: Packing.DTO.self, failure: PackingsUpdateFailure.self) {
             case .failure(let error): self.failure = error
             case .success(_):
                 await onSuccess?()
