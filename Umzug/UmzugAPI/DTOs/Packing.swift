@@ -64,6 +64,13 @@ enum PackingsListFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case serverError
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .serverError: "An internal API error occurred."
+        }
+    }
 }
 
 enum PackingsCreateFailure: UmzugAPIFailure {
@@ -74,6 +81,14 @@ enum PackingsCreateFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case constraintViolation(PackingConstraintViolation)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .constraintViolation(.packing_unique(item: _, box: _)): "This item is already packed into this box."
+        case .constraintViolation(.packing_nonzero(amount: _)): "This packing has an invalid amount."
+        }
+    }
 }
 
 enum PackingsUpdateFailure: UmzugAPIFailure {
@@ -89,6 +104,15 @@ enum PackingsUpdateFailure: UmzugAPIFailure {
     case noContent
     case constraintViolation(PackingConstraintViolation)
     case modelNotFound(UUID)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .constraintViolation(.packing_unique(item: _, box: _)): "This item is already packed into this box."
+        case .constraintViolation(.packing_nonzero(amount: _)): "This packing has an invalid amount."
+        case .modelNotFound(let id): "Packing not found for ID \(id)."
+        }
+    }
 }
 
 enum PackingsDeleteFailure: UmzugAPIFailure {
@@ -99,4 +123,11 @@ enum PackingsDeleteFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case modelNotFound(UUID)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .modelNotFound(let id): "Packing not found for ID \(id)."
+        }
+    }
 }

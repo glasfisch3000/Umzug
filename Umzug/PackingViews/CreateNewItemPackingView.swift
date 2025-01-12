@@ -59,7 +59,13 @@ struct CreateNewItemPackingView: View {
             } header: {
                 Text("Amount")
             } footer: {
-                failureView()
+                if let error = apiError {
+                    APIErrorView(error: error)
+                } else if let itemFailure = itemFailure {
+                    APIFailureLabel(failure: itemFailure, describe: \.description)
+                } else if let packingFailure = packingFailure {
+                    APIFailureLabel(failure: packingFailure, describe: \.description)
+                }
             }
         }
         .navigationTitle("Pack Item")
@@ -67,34 +73,6 @@ struct CreateNewItemPackingView: View {
         .toolbar(content: toolbarView)
         .onAppear {
             textFieldSelected = true
-        }
-    }
-    
-    @ViewBuilder
-    func failureView() -> some View {
-        if self.apiError != nil {
-            Label("Unable to connect to the API.", systemImage: "exclamationmark.octagon.fill")
-        } else if let itemFailure = itemFailure {
-            Label {
-                switch itemFailure {
-                case .invalidContent: Text("The API responded with invalid content.")
-                case .noContent: Text("The API responded with empty content.")
-                case .constraintViolation(.item_unique(title: _)): Text("An item with this title already exists.")
-                }
-            } icon: {
-                Image(systemName: "exclamationmark.triangle.fill")
-            }
-        } else if let packingFailure = packingFailure {
-            Label {
-                switch packingFailure {
-                case .invalidContent: Text("The API responded with invalid content.")
-                case .noContent: Text("The API responded with empty content.")
-                case .constraintViolation(.packing_unique(item: _, box: _)): Text("This item is already packed.")
-                case .constraintViolation(.packing_nonzero(amount: _)): Text("Invalid amount.")
-                }
-            } icon: {
-                Image(systemName: "exclamationmark.triangle.fill")
-            }
         }
     }
     

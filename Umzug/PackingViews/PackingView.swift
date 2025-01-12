@@ -19,7 +19,7 @@ struct PackingView: View {
     
     @State private var loading = false
     @State private var apiError: UmzugAPI.APIError?
-    @State private var updateFailure: PackingsUpdateFailure?
+    @State private var failure: PackingsUpdateFailure?
     
     var body: some View {
         Form {
@@ -42,7 +42,11 @@ struct PackingView: View {
             } header: {
                 Text("Amount")
             } footer: {
-                failureView()
+                if let error = apiError {
+                    APIErrorLabel(error: error)
+                } else if let failure = failure {
+                    APIFailureLabel(failure: failure, describe: \.description)
+                }
             }
             
             Button("Unpack item", systemImage: "trash", role: .destructive) {
@@ -66,32 +70,13 @@ struct PackingView: View {
         }
     }
     
-    @ViewBuilder
-    func failureView() -> some View {
-        if self.apiError != nil {
-            Label("Unable to connect to the API.", systemImage: "exclamationmark.octagon.fill")
-        } else if let updateFailure = updateFailure {
-            Label {
-                switch updateFailure {
-                case .invalidContent: Text("The API responded with invalid content.")
-                case .noContent: Text("The API responded with empty content.")
-                case .constraintViolation(.packing_unique(item: _, box: _)): Text("The API responded with an unexpected failure.")
-                case .constraintViolation(.packing_nonzero(amount: _)): Text("Invalid amount.")
-                case .modelNotFound(_): Text("The API responded with an unexpected failure.")
-                }
-            } icon: {
-                Image(systemName: "exclamationmark.triangle.fill")
-            }
-        }
-    }
-    
     func save() async {
         loading = true
         defer { loading = false }
         
         do throws(UmzugAPI.APIError) {
             switch try await api.makeRequest(.updatePacking(packing.id, amount: packing.amount+amountOffset), success: Packing.DTO.self, failure: PackingsUpdateFailure.self) {
-            case .failure(let error): self.updateFailure = error
+            case .failure(let error): self.failure = error
             case .success(_):
                 await onSuccess?()
                 dismiss()

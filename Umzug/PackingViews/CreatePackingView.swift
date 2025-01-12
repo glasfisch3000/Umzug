@@ -39,30 +39,16 @@ struct CreatePackingView: View {
             } header: {
                 Text("Amount")
             } footer: {
-                failureView()
+                if let error = apiError {
+                    APIErrorLabel(error: error)
+                } else if let failure = failure {
+                    APIFailureLabel(failure: failure, describe: \.description)
+                }
             }
         }
         .navigationTitle("Pack Item")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(content: toolbarView)
-    }
-    
-    @ViewBuilder
-    func failureView() -> some View {
-        if self.apiError != nil {
-            Label("Unable to connect to the API.", systemImage: "exclamationmark.octagon.fill")
-        } else if let failure = failure {
-            Label {
-                switch failure {
-                case .invalidContent: Text("The API responded with invalid content.")
-                case .noContent: Text("The API responded with empty content.")
-                case .constraintViolation(.packing_unique(item: _, box: _)): Text("This item is already packed.")
-                case .constraintViolation(.packing_nonzero(amount: _)): Text("Invalid amount.")
-                }
-            } icon: {
-                Image(systemName: "exclamationmark.triangle.fill")
-            }
-        }
     }
     
     @ToolbarContentBuilder

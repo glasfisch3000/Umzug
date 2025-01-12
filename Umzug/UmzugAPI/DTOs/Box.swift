@@ -38,6 +38,13 @@ enum BoxesListFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case serverError
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .serverError: "An internal API error occurred."
+        }
+    }
 }
 
 enum BoxesCreateFailure: UmzugAPIFailure {
@@ -48,6 +55,13 @@ enum BoxesCreateFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case constraintViolation(BoxConstraintViolation)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .constraintViolation(.box_unique(title: _)): "A box with this title already exists."
+        }
+    }
 }
 
 enum BoxesDeleteFailure: UmzugAPIFailure {
@@ -58,4 +72,11 @@ enum BoxesDeleteFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case modelNotFound(UUID)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .modelNotFound(let id): "Box not found for ID \(id)."
+        }
+    }
 }

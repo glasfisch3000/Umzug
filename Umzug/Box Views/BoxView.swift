@@ -26,15 +26,13 @@ struct BoxView: View {
             switch (items, packings) {
             case (.success(let items), .success(let packings)): valueView(items, packings: packings)
             case (nil, _), (_, nil):
-                if let error = $items.apiError {
-                    apiErrorView(error)
-                } else if let error = $packings.apiError {
-                    apiErrorView(error)
+                if let error = $items.apiError ?? $packings.apiError {
+                    APIErrorView(error: error)
                 } else {
-                    loadingView()
+                    FetchedLoadingView(fetched: ($items, $packings))
                 }
-            case (.failure(let failure), _): itemsFailureView(failure)
-            case (_, .failure(let failure)): packingsFailureView(failure)
+            case (.failure(let failure), _): APIFailureView(failure: failure, fetched: $items, describe: \.description)
+            case (_, .failure(let failure)): APIFailureView(failure: failure, fetched: $packings, describe: \.description)
             }
         }
         .navigationTitle(box.title)
@@ -187,118 +185,5 @@ struct BoxView: View {
             }
             await $packings.reload()
         }
-    }
-}
-
-extension BoxView {
-    @ViewBuilder
-    func loadingView() -> some View {
-        if $items.isLoading || $packings.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        } else {
-            Button("Load Value") {
-                Task { await $items.reload() }
-                Task { await $packings.reload() }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        }
-    }
-    
-    @ViewBuilder
-    func itemsFailureView(_ error: ItemsListFailure) -> some View {
-        VStack(alignment: .center) {
-            Spacer()
-            
-            Image(systemName: "exclamationmark.triangle.fill")
-                .symbolRenderingMode(.multicolor)
-                .font(.largeTitle)
-            
-            switch error {
-            case .serverError:
-                Text("An internal API error occurred.")
-            case .noContent, .invalidContent:
-                Text("Received an invalid or empty API response.")
-            }
-            
-            Spacer()
-            
-            Button {
-                Task {
-                    await $items.reload()
-                }
-            } label: {
-                HStack {
-                    Spacer()
-                    
-                    if $items.isLoading {
-                        ProgressView()
-                    } else {
-                        Text("Reload")
-                    }
-                    
-                    Spacer()
-                }
-            }
-            .buttonBorderShape(.roundedRectangle)
-            .buttonStyle(.bordered)
-            .disabled($items.isLoading)
-        }
-        .padding()
-    }
-    
-    @ViewBuilder
-    func packingsFailureView(_ error: PackingsListFailure) -> some View {
-        VStack(alignment: .center) {
-            Spacer()
-            
-            Image(systemName: "exclamationmark.triangle.fill")
-                .symbolRenderingMode(.multicolor)
-                .font(.largeTitle)
-            
-            switch error {
-            case .serverError:
-                Text("An internal API error occurred.")
-            case .noContent, .invalidContent:
-                Text("Received an invalid or empty API response.")
-            }
-            
-            Spacer()
-            
-            Button {
-                Task {
-                    await $packings.reload()
-                }
-            } label: {
-                HStack {
-                    Spacer()
-                    
-                    if $packings.isLoading {
-                        ProgressView()
-                    } else {
-                        Text("Reload")
-                    }
-                    
-                    Spacer()
-                }
-            }
-            .buttonBorderShape(.roundedRectangle)
-            .buttonStyle(.bordered)
-            .disabled($packings.isLoading)
-        }
-        .padding()
-    }
-    
-    @ViewBuilder
-    func apiErrorView(_ error: UmzugAPI.APIError) -> some View {
-        VStack(alignment: .center) {
-            Image(systemName: "exclamationmark.octagon.fill")
-                .symbolRenderingMode(.multicolor)
-                .font(.largeTitle)
-            
-            Text("An error occurred while connecting to the API.")
-        }
-        .frame(maxHeight: .infinity)
-        .padding()
     }
 }

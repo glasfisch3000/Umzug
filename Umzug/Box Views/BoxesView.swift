@@ -17,12 +17,12 @@ struct BoxesView: View {
     var body: some View {
         switch boxes {
         case .success(let boxes): valueView(boxes)
-        case .failure(let failure): failureView(failure)
+        case .failure(let failure): APIFailureView(failure: failure, fetched: $boxes, describe: \.description)
         case nil:
             if let error = $boxes.apiError {
-                apiErrorView(error)
+                APIErrorView(error: error)
             } else {
-                loadingView()
+                FetchedLoadingView(fetched: $boxes)
             }
         }
     }
@@ -104,75 +104,5 @@ struct BoxesView: View {
                 self.selection.append(box)
             }
         }
-    }
-    
-    @ViewBuilder
-    func loadingView() -> some View {
-        if $boxes.isLoading {
-            ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        } else {
-            Button("Load Value") {
-                Task {
-                    await $boxes.reload()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        }
-    }
-    
-    @ViewBuilder
-    func failureView(_ error: BoxesListFailure) -> some View {
-        VStack(alignment: .center) {
-            Spacer()
-            
-            Image(systemName: "exclamationmark.triangle.fill")
-                .symbolRenderingMode(.multicolor)
-                .font(.largeTitle)
-            
-            switch error {
-            case .serverError:
-                Text("An internal API error occurred.")
-            case .noContent, .invalidContent:
-                Text("Received an invalid or empty API response.")
-            }
-            
-            Spacer()
-            
-            Button {
-                Task {
-                    await $boxes.reload()
-                }
-            } label: {
-                HStack {
-                    Spacer()
-                    
-                    if $boxes.isLoading {
-                        ProgressView()
-                    } else {
-                        Text("Reload")
-                    }
-                    
-                    Spacer()
-                }
-            }
-            .buttonBorderShape(.roundedRectangle)
-            .buttonStyle(.bordered)
-            .disabled($boxes.isLoading)
-        }
-        .padding()
-    }
-    
-    @ViewBuilder
-    func apiErrorView(_ error: UmzugAPI.APIError) -> some View {
-        VStack(alignment: .center) {
-            Image(systemName: "exclamationmark.octagon.fill")
-                .symbolRenderingMode(.multicolor)
-                .font(.largeTitle)
-            
-            Text("An error occurred while connecting to the API.")
-        }
-        .frame(maxHeight: .infinity)
-        .padding()
     }
 }

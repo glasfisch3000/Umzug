@@ -47,6 +47,13 @@ enum ItemsListFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case serverError
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .serverError: "An internal API error occurred."
+        }
+    }
 }
 
 enum ItemsCreateFailure: UmzugAPIFailure {
@@ -57,6 +64,13 @@ enum ItemsCreateFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case constraintViolation(ItemConstraintViolation)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .constraintViolation(.item_unique(title: _)): "An item with this title already exists."
+        }
+    }
 }
 
 enum ItemsDeleteFailure: UmzugAPIFailure {
@@ -67,4 +81,11 @@ enum ItemsDeleteFailure: UmzugAPIFailure {
     case invalidContent
     case noContent
     case modelNotFound(UUID)
+    
+    var description: String {
+        switch self {
+        case .invalidContent, .noContent: "Received an invalid or empty API response."
+        case .modelNotFound(let id): "Item not found for ID \(id)."
+        }
+    }
 }
