@@ -14,6 +14,8 @@ struct ItemsView: View {
     @State private var selection: [Item] = []
     @State private var addItemSheetPresented = false
     
+    @State private var textInput = ""
+    
     var body: some View {
         switch items {
         case .success(let items): valueView(items)
@@ -31,24 +33,31 @@ struct ItemsView: View {
     func valueView(_ items: [Item]) -> some View {
         NavigationStack(path: $selection) {
             List {
-                let grouped = items.grouped(by: \.priority)
-                
-                ForEach(Item.Priority.allCases) { priority in
-                    Section {
-                        if let group = grouped[priority] {
-                            ForEach(group.sorted { $0.title < $1.title }) { item in
-                                itemView(item: item)
+                if !textInput.isEmpty {
+                    ForEach(items.filter { $0.title.localizedCaseInsensitiveContains(textInput) }.sorted { $0.title < $1.title }) { item in
+                        itemView(item)
+                    }
+                } else {
+                    let grouped = items.grouped(by: \.priority)
+                    
+                    ForEach(Item.Priority.allCases) { priority in
+                        Section {
+                            if let group = grouped[priority] {
+                                ForEach(group.sorted { $0.title < $1.title }) { item in
+                                    itemView(item)
+                                }
                             }
-                        }
-                    } header: {
-                        switch priority {
-                        case .immediate: Text("Immediate Priority").foregroundStyle(.red)
-                        case .standard: Text("Standard Priority").foregroundStyle(.yellow)
-                        case .longTerm: Text("Long Term Priority").foregroundStyle(.green)
+                        } header: {
+                            switch priority {
+                            case .immediate: Text("Immediate Priority").foregroundStyle(.red)
+                            case .standard: Text("Standard Priority").foregroundStyle(.yellow)
+                            case .longTerm: Text("Long Term Priority").foregroundStyle(.green)
+                            }
                         }
                     }
                 }
             }
+            .searchable(text: $textInput, placement: .toolbar, prompt: "Search Items")
             .refreshable {
                 await $items.reload()
             }
@@ -62,7 +71,7 @@ struct ItemsView: View {
     }
     
     @ViewBuilder
-    func itemView(item: Item) -> some View {
+    func itemView(_ item: Item) -> some View {
         NavigationLink(item.title, value: item)
             .contextMenu {
                 Button("Delete", systemImage: "trash", role: .destructive) {
